@@ -19,7 +19,7 @@ function similarity(O::Array{Int64, 2}; method::String, orientation="colwise")
 	n = size(O, 2)
 
 	# No sets are allowed to be completely empty
-	@assert minimum(LinearAlgebra.diag(C)) == 0 "Each relevant set must have at least one non-zero value"
+	@assert minimum(LinearAlgebra.diag(C)) != 0 "Each relevant set must have at least one non-zero value"
 
 	# Define possible similarity methods:
 	method_dict = Dict("association" => (Cij, Si, Sj) -> Cij / (Si * Sj),
@@ -48,6 +48,12 @@ function similarity(O::Array{Int64, 2}; method::String, orientation="colwise")
 end
 
 function density(;M::Array{Int64, 2}, SIM::Array{Float64, 2})
+
+	# Check inputs ------------------------------------
+	# Make sure that SIM is symmetrical
+	@assert size(SIM, 1) == size(SIM, 2) "`SIM` needs to be a square matrix"
+	# Make sure that the number of products in M matches SIM
+	@assert size(M, 2) == sizE(SIM, 2) "`M` and `SIM` needs to have the same number of columns"
 
 	# Get local density -------------------------------
 	# Set SIM diagonal to 0: a products similarity to itself is not important
