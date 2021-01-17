@@ -44,24 +44,29 @@ end
 
 @testset "Density tests" begin
 
+	# Define 
+	JACCARD_SIM = similarity(INCIDENCE_MAT, orientation="colwise", method = "jaccard")
 	# Check inputs:
-	@test_throws MethodError # get_rca(DataFrame(EXP))
-	@test_throws MethodError # get_rca(EXP[1, :])
-	@test_throws MethodError # get_rca(["1" "2";
-					  # "3" "4"])
-	# Check output type:
-	# @test typeof(get_rca(EXP, binary=true)) == Array{Int64, 2}
-	# @test typeof(get_rca(EXP, binary=false)) == Array{Float64, 2}
+	@test_throws MethodError density(M = DataFrame(INCIDENCE_MAT), SIM = JACCARD_SIM) # INCIDENCE_MAT should be a matrix
+	@test_throws MethodError density(M = INCIDENCE_MAT, SIM = DataFrame(JACCARD_SIM)) # SIM should be a matrix
+	@test_throws AssertionError density(M = INCIDENCE_MAT, SIM = vcat(JACCARD_SIM, JACCARD_SIM)) # SIM should be square
+	@test_throws AssertionError density(M = INCIDENCE_MAT, SIM = hcat(JACCARD_SIM, JACCARD_SIM[:, 1])) # number of cols in M should be == number of cols and rows in SIM
+
+	# Check output:
+	# Check that output is a matrix
+	@test typeof(density(M = INCIDENCE_MAT, SIM = JACCARD_SIM)) == Array{Float64, 2}
+	# Check that output is symmetrical
+	@test size(density(M = INCIDENCE_MAT, SIM = JACCARD_SIM), 1) == size(density(M = INCIDENCE_MAT, SIM = JACCARD_SIM), 2)
 
 	# Check output result:
-	# @test get_rca(EXP, binary=false)[4, 3] == (EXP[4, 3] / sum(EXP[4,:])) / (sum(EXP[:,3]) / sum(EXP))
-	# @test get_rca(EXP, binary=false)[3, 2] == (EXP[3, 2] / sum(EXP[3,:])) / (sum(EXP[:,2]) / sum(EXP))
+	@test density(
+		      M = INCIDENCE_MAT,
+		      SIM = JACCARD_SIM
+		      )[2, 5] == sum(INCIDENCE_MAT[2, :] .* JACCARD_SIM[5, :]) / sum(JACCARD_SIM[5,:])
 
-	# @test get_rca(EXP, binary=true)[4, 3] == 1 
-	# @test get_rca(EXP, binary=true)[3, 2] == 0 
-	
-	# Check inputs:
-	# Check output type:
-	# Check results:
-	
+	@test density(
+		      M = INCIDENCE_MAT,
+		      SIM = JACCARD_SIM
+		      )[5, 9] == sum(INCIDENCE_MAT[5, :] .* JACCARD_SIM[9, :]) / sum(JACCARD_SIM[9, :])
+
 end
